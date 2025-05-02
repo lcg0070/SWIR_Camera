@@ -11,7 +11,6 @@ import win32api
 import numpy as np
 import cv2
 
-
 WIDTH = 1280
 HEIGHT = 1024
 
@@ -53,6 +52,8 @@ def main():
     print("Python application started. Waiting for image data...")
 
     print("Press ESC to exit application...")
+    capture_count = 0  # 캡쳐 파일 번호 저장용
+
     while True:
         # ready for event signal : max 5s
         ret = win32event.WaitForSingleObject(hEvent, 5000)
@@ -71,11 +72,17 @@ def main():
 
                     image_array = np.frombuffer(image_data, dtype=np.uint8)
                     image = image_array.reshape((HEIGHT, WIDTH))
-                    image = cv2.resize(image, dsize=(640, 512), interpolation=cv2.INTER_AREA)
+                    image_resized = cv2.resize(image, dsize=(640, 512), interpolation=cv2.INTER_AREA)
 
-                    cv2.imshow('Image', image)
-                    if cv2.waitKey(1) == 27:
+                    cv2.imshow('Image', image_resized)
+                    key = cv2.waitKey(1) & 0xFF  # 여기서 키 입력 받음
+                    if key == 27:  # ESC
                         break
+                    elif key == 32:  # Space
+                        filename = f"capture_{capture_count}.png"
+                        cv2.imwrite(filename, image)
+                        print(f"Captured image saved as {filename}")
+                        capture_count += 1
                 finally:
                     win32event.ReleaseMutex(hMutex)
             else:
